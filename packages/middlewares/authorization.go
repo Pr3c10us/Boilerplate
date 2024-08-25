@@ -2,7 +2,9 @@ package middlewares
 
 import (
 	"errors"
+	"fmt"
 	authentication2 "github.com/Pr3c10us/boilerplate/internals/domains/authentication"
+	"github.com/Pr3c10us/boilerplate/internals/services/authentication"
 	"github.com/Pr3c10us/boilerplate/packages/appError"
 	"github.com/Pr3c10us/boilerplate/packages/configs"
 	"github.com/Pr3c10us/boilerplate/packages/utils"
@@ -12,7 +14,7 @@ import (
 	"strings"
 )
 
-func RiderAuthorizationMiddleware(repository authentication2.Repository, environmentVariables *configs.EnvironmentVariables) gin.HandlerFunc {
+func UserAuthorizationMiddleware(service authentication.Services, environmentVariables *configs.EnvironmentVariables) gin.HandlerFunc {
 	return func(context *gin.Context) {
 		var token string
 		var err error
@@ -37,7 +39,7 @@ func RiderAuthorizationMiddleware(repository authentication2.Repository, environ
 		var user *authentication2.User
 		var id uuid.UUID
 		id, err = uuid.Parse(claims.ID)
-		user, err = repository.GetUserDetails(&authentication2.GetUserParams{
+		user, err = service.GetUserDetails.Handle(&authentication2.GetUserParams{
 			ID: id,
 		})
 		if err != nil {
@@ -70,6 +72,7 @@ func GetAuthorizationToken(context *gin.Context) (string, error) {
 func GetCookieKey(context *gin.Context, key string) string {
 	session := sessions.Default(context)
 	token := session.Get(key)
+	fmt.Println(token)
 	if token == nil {
 		return ""
 	} else {

@@ -1,6 +1,7 @@
 package http
 
 import (
+	authentication2 "github.com/Pr3c10us/boilerplate/internals/domains/authentication"
 	"github.com/Pr3c10us/boilerplate/internals/infrastructures/ports/http/authentication"
 	"github.com/Pr3c10us/boilerplate/internals/services"
 	"github.com/Pr3c10us/boilerplate/packages/configs"
@@ -38,10 +39,19 @@ func NewGinServer(services *services.Services, logger logger.Logger, environment
 	ginServer.Engine.NoRoute(middlewares.RouteNotFoundMiddleware())
 
 	ginServer.Health()
+	ginServer.SecureHealth()
 	ginServer.Authentication()
 
 	return ginServer
 }
+func (server *GinServer) SecureHealth() {
+	server.Engine.GET("/secure/health", middlewares.UserAuthorizationMiddleware(server.Services.AuthenticationServices, server.Environment), func(c *gin.Context) {
+		user := c.MustGet("user").(*authentication2.User)
+		server.Logger.LogWithFields("info", user.FullName, user)
+		response.NewSuccessResponse("server up!!!", nil, nil).Send(c)
+	})
+}
+
 func (server *GinServer) Health() {
 	server.Engine.GET("/health", func(c *gin.Context) {
 		response.NewSuccessResponse("server up!!!", nil, nil).Send(c)
@@ -55,11 +65,10 @@ func (server *GinServer) Authentication() {
 		oauthRoute.GET("/", handler.InitiateAuth)
 		oauthRoute.GET("/callback", handler.Callback)
 	}
-	//identityRoute := server.Engine.Group("/api/v1/identity")
-	//{
-	//	identityRoute.POST("/setup", middlewares.RiderAuthorizationMiddleware(server.Services.IdentityService, server.Environment), handler.IdentityVerification)
-	//	identityRoute.POST("/device", middlewares.RiderAuthorizationMiddleware(server.Services.IdentityService, server.Environment), handler.AddRiderDevice)
-	//}
+	tokenRoute := server.Engine.Group("/api/v1/auth")
+	{
+		tokenRoute.GET("/token", handler.GetAccessToken)
+	}
 
 }
 

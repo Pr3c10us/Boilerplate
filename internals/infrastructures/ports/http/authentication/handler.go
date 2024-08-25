@@ -67,12 +67,12 @@ func (handler *Handler) InitiateAuth(context *gin.Context) {
 		session := sessions.Default(context)
 		session.Set("token", token)
 		session.Set("refreshToken", refreshToken)
-		session.Options(sessions.Options{MaxAge: handler.environmentVariables.SessionMaxAge})
+		session.Options(sessions.Options{MaxAge: handler.environmentVariables.SessionMaxAge, Path: "/"})
 		if err = session.Save(); err != nil {
 			_ = context.Error(err)
 			return
 		}
-		response.NewSuccessResponse("", gin.H{"user": user, "token": token}, nil).Send(context)
+		response.NewSuccessResponse("", gin.H{"user": user, "token": token, "refreshToken": refreshToken}, nil).Send(context)
 
 	} else {
 		fmt.Println(err, "------------------------------------")
@@ -118,13 +118,13 @@ func (handler *Handler) Callback(context *gin.Context) {
 	session := sessions.Default(context)
 	session.Set("token", token)
 	session.Set("refreshToken", refreshToken)
-	session.Options(sessions.Options{MaxAge: handler.environmentVariables.SessionMaxAge})
+	session.Options(sessions.Options{MaxAge: handler.environmentVariables.SessionMaxAge, Path: "/"})
 	if err = session.Save(); err != nil {
 		_ = context.Error(err)
 		return
 	}
 
-	response.NewSuccessResponse("", gin.H{"user": user, "token": token}, nil).Send(context)
+	response.NewSuccessResponse("", gin.H{"user": user, "token": token, "refreshToken": refreshToken}, nil).Send(context)
 }
 
 func (handler *Handler) GetAccessToken(context *gin.Context) {
@@ -183,7 +183,7 @@ func (handler *Handler) GetAccessToken(context *gin.Context) {
 	session := sessions.Default(context)
 	session.Set("token", token)
 	session.Set("refreshToken", refreshToken)
-	session.Options(sessions.Options{MaxAge: handler.environmentVariables.SessionMaxAge})
+	session.Options(sessions.Options{MaxAge: handler.environmentVariables.SessionMaxAge, Path: "/"})
 	if err = session.Save(); err != nil {
 		_ = context.Error(err)
 		return

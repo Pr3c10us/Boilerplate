@@ -30,8 +30,10 @@ func main() {
 	defer func(redis *redis.Client) {
 		_ = redis.Close()
 	}(newRedisConnection)
+	newSESClient := utils.NewSESClient(environmentVariables)
+	newSNSClient := utils.NewSNSClient(environmentVariables)
 
-	newAdapters := adapters.NewAdapters(newLogger, environmentVariables, newPGConnection, newRedisConnection, newS3Client)
+	newAdapters := adapters.NewAdapters(newLogger, environmentVariables, newPGConnection, newRedisConnection, newS3Client, newSESClient, newSNSClient)
 	newServices := services.NewServices(newAdapters)
 	newPort := ports.NewPorts(newServices, newLogger, environmentVariables)
 	newPort.GinServer.Run()

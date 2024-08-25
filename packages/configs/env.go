@@ -28,10 +28,11 @@ type RedisKeys struct {
 }
 
 type AWSKeys struct {
-	AccessID  string
-	SecretKey string
-	Region    string
-	Endpoint  string
+	AccessID    string
+	SecretKey   string
+	Region      string
+	Endpoint    string
+	AWSFromMail string
 }
 
 type GoogleOAuth struct {
@@ -49,6 +50,14 @@ type GithubOAuth struct {
 type OAuthProvider struct {
 	Google *GoogleOAuth
 	Github *GithubOAuth
+}
+
+type SMTP struct {
+	FromAddress string
+	Host        string
+	Port        int
+	Username    string
+	Password    string
 }
 
 type StorageUnits struct {
@@ -77,6 +86,7 @@ type EnvironmentVariables struct {
 	AWSKeys               *AWSKeys
 	StorageUnits          *StorageUnits
 	OAuthProvider         *OAuthProvider
+	SMTP                  *SMTP
 }
 
 func loadEnv() {
@@ -93,9 +103,9 @@ func LoadEnvironment() *EnvironmentVariables {
 	return &EnvironmentVariables{
 		Port:                  getEnv("PORT", ":5000"),
 		JWTSecret:             getEnvOrError("JWT_SECRET"),
-		JWTMaxAge:             time.Duration(getEnvAsInt("JWT_MAX_AGE", 60*15)),
+		JWTMaxAge:             time.Second * time.Duration(getEnvAsInt("JWT_MAX_AGE", 60*15)),
 		RefreshJWTSecret:      getEnvOrError("REFRESH_JWT_SECRET"),
-		RefreshJWTMaxAge:      time.Duration(getEnvAsInt("REFRESH_JWT_MAX_AGE", 60*60*24*31)),
+		RefreshJWTMaxAge:      time.Second * time.Duration(getEnvAsInt("REFRESH_JWT_MAX_AGE", 60*60*24*31)),
 		CookieSecret:          getEnvOrError("COOKIE_SECRET"),
 		SessionSecret:         getEnvOrError("SESSIONS_SECRET"),
 		SessionMaxAge:         getEnvAsInt("SESSION_MAX_AGE", 86400*300),
@@ -123,10 +133,11 @@ func LoadEnvironment() *EnvironmentVariables {
 			VerificationCodeKey: getEnv("REDIS_VERIFICATION_CODE_KEY", "verification_code"),
 		},
 		AWSKeys: &AWSKeys{
-			AccessID:  getEnvOrError("AWS_ACCESS_KEY_ID"),
-			SecretKey: getEnvOrError("AWS_SECRET_ACCESS_KEY"),
-			Region:    getEnvOrError("AWS_REGION"),
-			Endpoint:  getEnvOrError("AWS_ENDPOINT"),
+			AccessID:    getEnvOrError("AWS_ACCESS_KEY_ID"),
+			SecretKey:   getEnvOrError("AWS_SECRET_ACCESS_KEY"),
+			Region:      getEnvOrError("AWS_REGION"),
+			Endpoint:    getEnvOrError("AWS_ENDPOINT"),
+			AWSFromMail: getEnvOrError("AWS_FROM_MAIL"),
 		},
 		StorageUnits: &StorageUnits{},
 		OAuthProvider: &OAuthProvider{
@@ -140,6 +151,13 @@ func LoadEnvironment() *EnvironmentVariables {
 				GithubSecret:   getEnvOrError("GITHUB_CLIENT_SECRET"),
 				GithubCallback: getEnvOrError("GITHUB_CALLBACK_URL"),
 			},
+		},
+		SMTP: &SMTP{
+			FromAddress: getEnvOrError("SMTP_FROM_ADDRESS"),
+			Host:        getEnvOrError("SMTP_HOST"),
+			Port:        getEnvAsInt("SMTP_PORT", 587),
+			Username:    getEnvOrError("SMTP_USERNAME"),
+			Password:    getEnvOrError("SMTP_PASSWORD"),
 		},
 	}
 }
