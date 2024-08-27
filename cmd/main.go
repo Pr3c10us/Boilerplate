@@ -9,6 +9,7 @@ import (
 	"github.com/Pr3c10us/boilerplate/packages/logger"
 	"github.com/Pr3c10us/boilerplate/packages/utils"
 	"github.com/redis/go-redis/v9"
+	"github.com/stripe/stripe-go/v79"
 )
 
 var (
@@ -32,8 +33,18 @@ func main() {
 	}(newRedisConnection)
 	newSESClient := utils.NewSESClient(environmentVariables)
 	newSNSClient := utils.NewSNSClient(environmentVariables)
+	stripe.Key = environmentVariables.Stripe.SecretKey
 
-	newAdapters := adapters.NewAdapters(newLogger, environmentVariables, newPGConnection, newRedisConnection, newS3Client, newSESClient, newSNSClient)
+	adapterDependencies := adapters.AdapterDependencies{
+		Logger:               newLogger,
+		EnvironmentVariables: environmentVariables,
+		DB:                   newPGConnection,
+		Redis:                newRedisConnection,
+		S3Client:             newS3Client,
+		SESClient:            newSESClient,
+		SNSClient:            newSNSClient,
+	}
+	newAdapters := adapters.NewAdapters(adapterDependencies)
 	newServices := services.NewServices(newAdapters)
 	newPort := ports.NewPorts(newServices, newLogger, environmentVariables)
 	newPort.GinServer.Run()

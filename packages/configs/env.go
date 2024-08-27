@@ -63,6 +63,15 @@ type SMTP struct {
 type StorageUnits struct {
 }
 
+type Stripe struct {
+	SecretKey     string
+	WebhookSecret string
+}
+
+type Paystack struct {
+	SecretKey string
+}
+
 type EnvironmentVariables struct {
 	Port                  string
 	JWTSecret             string
@@ -87,6 +96,8 @@ type EnvironmentVariables struct {
 	StorageUnits          *StorageUnits
 	OAuthProvider         *OAuthProvider
 	SMTP                  *SMTP
+	Stripe                *Stripe
+	Paystack              *Paystack
 }
 
 func loadEnv() {
@@ -158,6 +169,13 @@ func LoadEnvironment() *EnvironmentVariables {
 			Port:        getEnvAsInt("SMTP_PORT", 587),
 			Username:    getEnvOrError("SMTP_USERNAME"),
 			Password:    getEnvOrError("SMTP_PASSWORD"),
+		},
+		Stripe: &Stripe{
+			SecretKey:     getEnvOrError("STRIPE_SECRET"),
+			WebhookSecret: getEnvOrError("STRIPE_SIGNING_SECRET"),
+		},
+		Paystack: &Paystack{
+			SecretKey: getEnvOrError("PAYSTACK_SECRET"),
 		},
 	}
 }

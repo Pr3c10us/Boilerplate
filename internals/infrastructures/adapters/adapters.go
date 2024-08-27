@@ -10,8 +10,20 @@ import (
 	email2 "github.com/Pr3c10us/boilerplate/internals/infrastructures/adapters/email"
 	"github.com/Pr3c10us/boilerplate/packages/configs"
 	"github.com/Pr3c10us/boilerplate/packages/logger"
+	"github.com/aws/aws-sdk-go-v2/service/ses"
+	"github.com/aws/aws-sdk-go-v2/service/sns"
 	"github.com/redis/go-redis/v9"
 )
+
+type AdapterDependencies struct {
+	Logger               logger.Logger
+	EnvironmentVariables *configs.EnvironmentVariables
+	DB                   *sql.DB
+	Redis                *redis.Client
+	S3Client             storage.S3ClientInterface
+	SESClient            *ses.Client
+	SNSClient            *sns.Client
+}
 
 type Adapters struct {
 	Logger                   logger.Logger
@@ -21,11 +33,11 @@ type Adapters struct {
 	SMSRepository            sms.Repository
 }
 
-func NewAdapters(logger logger.Logger, environmentVariables *configs.EnvironmentVariables, db *sql.DB, redis *redis.Client, s3Client storage.S3ClientInterface) *Adapters {
+func NewAdapters(dependencies AdapterDependencies) *Adapters {
 	return &Adapters{
-		Logger:                   logger,
-		EnvironmentVariables:     environmentVariables,
-		AuthenticationRepository: authentication2.NewAuthenticationRepositoryPG(db),
-		EmailRepository:          email2.NewGoMailEmailRepository(environmentVariables),
+		Logger:                   dependencies.Logger,
+		EnvironmentVariables:     dependencies.EnvironmentVariables,
+		AuthenticationRepository: authentication2.NewAuthenticationRepositoryPG(dependencies.DB),
+		EmailRepository:          email2.NewGoMailEmailRepository(dependencies.EnvironmentVariables),
 	}
 }
