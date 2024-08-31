@@ -1,11 +1,10 @@
 package authentication
 
-import (
-	"github.com/markbates/goth"
-)
+import "github.com/markbates/goth"
 
 type Repository interface {
-	AddUser(user *goth.User) (*User, error)
+	CreateUser(user *AddUserParams) error
 	GetUserDetails(params *GetUserParams) (*User, error)
-	UpdateUser(user *User) (*User, error)
+	UpdateProfile(params *UserProfileParams) error
+	AddUserOAuth(user *goth.User) (*User, error)
 }

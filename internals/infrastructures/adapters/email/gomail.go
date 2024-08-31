@@ -16,7 +16,7 @@ func NewGoMailEmailRepository(environmentVariables *configs.EnvironmentVariables
 	}
 }
 
-func (repo *GoMailEmailRepository) SendEmail(params email.MessageEmailParams) error {
+func (repo *GoMailEmailRepository) SendEmail(params *email.MessageEmailParams) error {
 	mailer := mail.NewMessage()
 	mailer.SetHeader("From", repo.environmentVariables.SMTP.FromAddress)
 

@@ -26,13 +26,10 @@ func main() {
 	defer func(db *sql.DB) {
 		_ = db.Close()
 	}(newPGConnection)
-	newS3Client := utils.NewS3Client(environmentVariables)
 	newRedisConnection := utils.NewRedisClient(environmentVariables)
 	defer func(redis *redis.Client) {
 		_ = redis.Close()
 	}(newRedisConnection)
-	newSESClient := utils.NewSESClient(environmentVariables)
-	newSNSClient := utils.NewSNSClient(environmentVariables)
 	stripe.Key = environmentVariables.Stripe.SecretKey
 
 	adapterDependencies := adapters.AdapterDependencies{
@@ -40,9 +37,10 @@ func main() {
 		EnvironmentVariables: environmentVariables,
 		DB:                   newPGConnection,
 		Redis:                newRedisConnection,
-		S3Client:             newS3Client,
-		SESClient:            newSESClient,
-		SNSClient:            newSNSClient,
+		S3Client:             utils.NewS3Client(environmentVariables),
+		SESClient:            utils.NewSESClient(environmentVariables),
+		SNSClient:            utils.NewSNSClient(environmentVariables),
+		PaystackClient:       utils.NewPaystackClient(environmentVariables),
 	}
 	newAdapters := adapters.NewAdapters(adapterDependencies)
 	newServices := services.NewServices(newAdapters)

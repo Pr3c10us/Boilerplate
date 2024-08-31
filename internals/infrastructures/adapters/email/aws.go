@@ -14,7 +14,7 @@ type AWSEmailRepository struct {
 	environmentVariables *configs.EnvironmentVariables
 }
 
-func (repository *AWSEmailRepository) SendEmail(params email.MessageEmailParams) error {
+func (repository *AWSEmailRepository) SendEmail(params *email.MessageEmailParams) error {
 	var input *ses.SendEmailInput
 	if params.Type == "text" {
 		input = &ses.SendEmailInput{

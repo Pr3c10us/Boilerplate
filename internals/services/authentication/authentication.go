@@ -2,8 +2,11 @@ package authentication
 
 import (
 	"github.com/Pr3c10us/boilerplate/internals/domains/authentication"
-	"github.com/Pr3c10us/boilerplate/internals/services/authentication/command"
+	"github.com/Pr3c10us/boilerplate/internals/domains/cache"
+	"github.com/Pr3c10us/boilerplate/internals/domains/email"
+	"github.com/Pr3c10us/boilerplate/internals/services/authentication/commands"
 	"github.com/Pr3c10us/boilerplate/internals/services/authentication/queries"
+	"github.com/Pr3c10us/boilerplate/packages/configs"
 )
 
 type Services struct {
@@ -12,22 +15,30 @@ type Services struct {
 }
 
 type Commands struct {
-	Authenticate         command.Authenticate
-	UpdateRefreshVersion command.UpdateRefreshVersion
+	CreateUser    commands.CreateUser
+	Authenticate  commands.Authenticate
+	UpdateProfile commands.UpdateProfile
+	ResendCode    commands.ResendCode
 }
 
 type Queries struct {
 	GetUserDetails queries.GetUserDetails
+	Login          queries.Login
+	VerifyCode     queries.VerifyCode
 }
 
-func NewAuthenticationServices(authenticationRepository authentication.Repository) Services {
+func NewAuthenticationService(emailRepository email.Repository, cacheRepository cache.Repository, environmentVariables *configs.EnvironmentVariables, repository authentication.Repository) Services {
 	return Services{
 		Commands: Commands{
-			Authenticate:         command.NewAuthenticate(authenticationRepository),
-			UpdateRefreshVersion: command.NewUpdateRefreshVersion(authenticationRepository),
+			CreateUser:    commands.NewCreateUser(repository, emailRepository, cacheRepository, environmentVariables),
+			UpdateProfile: commands.NewUpdateProfile(repository),
+			ResendCode:    commands.NewResendCodeService(repository, emailRepository, cacheRepository, environmentVariables),
+			Authenticate:  commands.NewAuthenticate(repository),
 		},
 		Queries: Queries{
-			GetUserDetails: queries.NewGetUserDetails(authenticationRepository),
+			GetUserDetails: queries.NewGetUserDetails(repository),
+			Login:          queries.NewLogin(repository, environmentVariables),
+			VerifyCode:     queries.NewVerifyCode(repository, cacheRepository, environmentVariables),
 		},
 	}
 }

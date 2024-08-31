@@ -11,6 +11,6 @@ type Services struct {
 
 func NewServices(adapters *adapters.Adapters) *Services {
 	return &Services{
-		AuthenticationServices: authentication.NewAuthenticationServices(adapters.AuthenticationRepository),
+		AuthenticationServices: authentication.NewAuthenticationService(adapters.EmailRepository, adapters.CacheRepository, adapters.EnvironmentVariables, adapters.AuthenticationRepository),
 	}
 }

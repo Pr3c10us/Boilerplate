@@ -65,11 +65,14 @@ func (server *GinServer) Authentication() {
 		oauthRoute.GET("/", handler.InitiateAuth)
 		oauthRoute.GET("/callback", handler.Callback)
 	}
-	tokenRoute := server.Engine.Group("/api/v1/auth")
+	authRoute := server.Engine.Group("/api/v1/authentication")
 	{
-		tokenRoute.GET("/token", handler.GetAccessToken)
+		authRoute.POST("/signup", handler.Registration)
+		authRoute.POST("/login", handler.Login)
+		authRoute.GET("/token", handler.GetAccessToken)
+		authRoute.POST("/verify/resend", handler.ResendCode)
+		authRoute.POST("/verify/email", handler.VerifyCode)
 	}
-
 }
 
 func (server *GinServer) Run() {

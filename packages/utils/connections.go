@@ -12,6 +12,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ses"
 	"github.com/aws/aws-sdk-go-v2/service/sns"
 	redis "github.com/redis/go-redis/v9"
+	"github.com/rpip/paystack-go"
 	"log"
 )
 
@@ -78,4 +79,8 @@ func NewSNSClient(env *configs.EnvironmentVariables) *sns.Client {
 
 	// Create an SNS client using the loaded configuration
 	return sns.NewFromConfig(cfg)
+}
+
+func NewPaystackClient(env *configs.EnvironmentVariables) *paystack.Client {
+	return paystack.NewClient(env.Paystack.SecretKey, nil)
 }

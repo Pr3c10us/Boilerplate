@@ -23,7 +23,7 @@ func (repo *PaymentRepositoryStripe) CreatePlan(plan payment.Plan) (string, erro
 		Recurring: &stripe.PriceRecurringParams{
 			Interval: stripe.String(string(plan.Interval.Stripe())),
 		},
-		UnitAmount: stripe.Int64(plan.Amount.IntPart()),
+		UnitAmount: stripe.Int64(plan.Amount.IntPart() * 100),
 	}
 	createdPrice, err := price.New(priceParams)
 	if err != nil {

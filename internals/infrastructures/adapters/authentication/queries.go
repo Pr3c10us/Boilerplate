@@ -3,23 +3,24 @@ package authentication
 import (
 	"database/sql"
 	"errors"
+
 	sq "github.com/Masterminds/squirrel"
 	"github.com/Pr3c10us/boilerplate/internals/domains/authentication"
 	"github.com/Pr3c10us/boilerplate/packages/appError"
+	"github.com/google/uuid"
 )
 
-func (repo *AuthRepository) GetUserDetails(params *authentication.GetUserParams) (*authentication.User, error) {
-	query, _, err := sq.Select(
+func (repo *RepositoryPG) GetUserDetails(params *authentication.GetUserParams) (*authentication.User, error) {
+	query, args, err := sq.Select(
 		"id",
-		"email",
+		"COALESCE(email, '') AS email",
+		"password",
 		"COALESCE(first_name, '') AS first_name",
 		"COALESCE(last_name, '') AS last_name",
 		"COALESCE(full_name, '') AS full_name",
-		"COALESCE(avatar_url, '') AS avatar_url",
-		"COALESCE(location, '') AS location",
-		"refresh_token_version",
 		"created_at",
-	).From("users").Where(sq.Or{sq.Eq{"email": "?"}, sq.Eq{"id": "?"}}).PlaceholderFormat(sq.Dollar).ToSql()
+		"updated_at",
+	).From("organizations").Where(sq.Or{sq.Eq{"email": params.Email}, sq.Eq{"id": params.ID}}).PlaceholderFormat(sq.Dollar).ToSql()
 	if err != nil {
 		return nil, err
 	}
@@ -31,22 +32,26 @@ func (repo *AuthRepository) GetUserDetails(params *authentication.GetUserParams)
 	}
 	defer statement.Close()
 
-	var user authentication.User
-	switch err = statement.QueryRow(params.Email, params.ID).Scan(
-		&user.ID,
+	user := authentication.User{}
+	var id string
+	switch err = statement.QueryRow(args...).Scan(
+		&id,
 		&user.Email,
+		&user.Password,
 		&user.FirstName,
 		&user.LastName,
 		&user.FullName,
-		&user.AvatarURL,
-		&user.Location,
-		&user.RefreshTokenVersion,
 		&user.CreatedAt,
+		&user.UpdatedAt,
 	); {
 	case errors.Is(err, sql.ErrNoRows):
-		var userNotFoundErr = errors.New("user does not exit")
+		var userNotFoundErr = errors.New("user with does not exit")
 		return nil, appError.NotFound(userNotFoundErr)
 	case err == nil:
+		user.ID, err = uuid.Parse(id)
+		if err != nil {
+			return nil, err
+		}
 		return &user, nil
 	default:
 		return nil, err
